@@ -480,7 +480,6 @@ public class HubConnection {
             handshakeResponseSubject.onComplete();
             redirectAccessTokenProvider = null;
             transportEnum = TransportEnum.ALL;
-            this.headers.remove("Authorization");
         } finally {
             hubConnectionStateLock.unlock();
         }

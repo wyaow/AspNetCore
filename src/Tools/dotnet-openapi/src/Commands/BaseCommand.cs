@@ -106,7 +106,7 @@ namespace Microsoft.DotNet.OpenApi.Commands
 
         internal bool IsProjectFile(string file)
         {
-            return File.Exists(file) && file.EndsWith(".csproj");
+            return File.Exists(Path.GetFullPath(file)) && file.EndsWith(".csproj");
         }
 
         internal bool IsUrl(string file)
@@ -122,7 +122,9 @@ namespace Microsoft.DotNet.OpenApi.Commands
         {
             var project = LoadProject(projectFile);
             var items = project.GetItems(tagName);
-            var item = items.SingleOrDefault(i => string.Equals(i.EvaluatedInclude, sourceFile));
+            var item = items.FirstOrDefault((i) => {
+                return string.Equals(GetFullPath(i.EvaluatedInclude), GetFullPath(sourceFile), StringComparison.Ordinal);
+            });
 
             if (sourceUrl != null)
             {
@@ -181,9 +183,15 @@ namespace Microsoft.DotNet.OpenApi.Commands
                     "--no-restore"
                 };
 
+                var muxer = DotNetMuxer.MuxerPathOrDefault();
+                if(string.IsNullOrEmpty(muxer))
+                {
+                    throw new ArgumentException($"dotnet was not found on the path.");
+                }
+
                 var startInfo = new ProcessStartInfo
                 {
-                    FileName = DotNetMuxer.MuxerPath,
+                    FileName = muxer,
                     Arguments = string.Join(" ", args),
                     WorkingDirectory = projectFile.Directory.FullName,
                     RedirectStandardError = true,
@@ -201,10 +209,16 @@ namespace Microsoft.DotNet.OpenApi.Commands
                 {
                     Error.Write(process.StandardError.ReadToEnd());
                     Error.Write(process.StandardOutput.ReadToEnd());
-                    Error.Write($"Could not add package `{packageId}` to `{projectFile.Directory}`");
-                    throw new ArgumentException();
+                    throw new ArgumentException($"Could not add package `{packageId}` to `{projectFile.Directory}`");
                 }
             }
+        }
+
+        internal string GetFullPath(string path)
+        {
+            return Path.IsPathFullyQualified(path)
+                ? Path.GetFullPath(path)
+                : Path.GetFullPath(path, WorkingDirectory);
         }
 
         private static IEnumerable<Tuple<string, string>> GetServicePackages(CodeGenerator type)
@@ -230,11 +244,11 @@ namespace Microsoft.DotNet.OpenApi.Commands
             var destinationExists = File.Exists(destinationPath);
             if (destinationExists && !overwrite)
             {
-                await Out.WriteAsync($"Not overwriting existing file '{destinationPath}'.");
+                await Out.WriteLineAsync($"Not overwriting existing file '{destinationPath}'.");
                 return;
             }
 
-            await Out.WriteAsync($"Downloading to '{destinationPath}'.");
+            await Out.WriteLineAsync($"Downloading to '{destinationPath}'.");
             var reachedCopy = false;
             try
             {
@@ -257,7 +271,7 @@ namespace Microsoft.DotNet.OpenApi.Commands
 
                     if (sameHashes)
                     {
-                        await Out.WriteAsync($"Not overwriting existing and matching file '{destinationPath}'.");
+                        await Out.WriteLineAsync($"Not overwriting existing and matching file '{destinationPath}'.");
                         return;
                     }
                 }
@@ -282,8 +296,8 @@ namespace Microsoft.DotNet.OpenApi.Commands
             }
             catch (Exception ex)
             {
-                await Error.WriteAsync($"Downloading failed.");
-                await Error.WriteAsync(ex.ToString());
+                await Error.WriteLineAsync($"Downloading failed.");
+                await Error.WriteLineAsync(ex.ToString());
                 if (reachedCopy)
                 {
                     File.Delete(destinationPath);

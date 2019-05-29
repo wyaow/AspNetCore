@@ -34,8 +34,7 @@ namespace Microsoft.DotNet.OpenApi.Commands
                 }
                 else
                 {
-                    Error.Write($"{SourceProjectArgName} of '{sourceFile}' was not valid. Valid values must be project file(s)");
-                    throw new ArgumentException();
+                    throw new ArgumentException($"{SourceProjectArgName} of '{sourceFile}' was not valid. Valid values must be project file(s)");
                 }
             }
 

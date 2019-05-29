@@ -62,8 +62,19 @@ namespace Microsoft.DotNet.OpenApi
                 foreach (var innerException in ex.Flatten().InnerExceptions)
                 {
                     Error.WriteLine(innerException.Message);
-                    Error.WriteLine(innerException.StackTrace);
+                    if (!(innerException is ArgumentException))
+                    {
+                        Error.WriteLine(innerException.StackTrace);
+                    }
                 }
+                return 1;
+            }
+
+            catch (ArgumentException ex)
+            {
+                // Don't show a call stack when we have unneeded arguments, just print the error message.
+                // The code that throws this exception will print help, so no need to do it here.
+                Error.WriteLine(ex.Message);
                 return 1;
             }
             catch (CommandParsingException ex)

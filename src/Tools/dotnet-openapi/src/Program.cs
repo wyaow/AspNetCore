@@ -5,7 +5,6 @@ using System;
 using System.IO;
 using System.Net.Http;
 using System.Threading.Tasks;
-using Microsoft.Extensions.OpenApi.Tasks;
 
 namespace Microsoft.DotNet.OpenApi
 {
@@ -16,24 +15,38 @@ namespace Microsoft.DotNet.OpenApi
             var outputWriter = new StringWriter();
             var errorWriter = new StringWriter();
 
-            var application = new Application(
-                Directory.GetCurrentDirectory(),
-                DownloadAsync,
-                outputWriter,
-                errorWriter);
+            DebugMode.HandleDebugSwitch(ref args);
 
-            var result = application.Execute(args);
+            try
+            {
+                var application = new Application(
+                    Directory.GetCurrentDirectory(),
+                    DownloadAsync,
+                    outputWriter,
+                    errorWriter);
 
-            var output = outputWriter.ToString();
-            var error = errorWriter.ToString();
+                var result = application.Execute(args);
 
-            outputWriter.Dispose();
-            errorWriter.Dispose();
+                return result;
+            }
+            catch(Exception ex)
+            {
+                Console.Error.WriteLine("Unexpected error:");
+                Console.Error.WriteLine(ex.ToString());
+            }
+            finally
+            {
+                var output = outputWriter.ToString();
+                var error = errorWriter.ToString();
 
-            Console.Write(output);
-            Console.Error.Write(error);
+                outputWriter.Dispose();
+                errorWriter.Dispose();
 
-            return result;
+                Console.Write(output);
+                Console.Error.Write(error);
+            }
+
+            return 1;
         }
 
         public static async Task<Stream> DownloadAsync(string url)

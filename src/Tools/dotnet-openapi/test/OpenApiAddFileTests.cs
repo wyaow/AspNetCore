@@ -73,6 +73,33 @@ namespace Microsoft.DotNet.OpenApi.Add.Tests
         }
 
         [Fact]
+        public void OpenApi_Add__File_EquivilentPaths()
+        {
+            var project = CreateBasicProject(withOpenApi: true);
+            var nswagJsonFile = project.NSwagJsonFile;
+
+            var app = GetApplication();
+            var run = app.Execute(new[] { "add", "file", nswagJsonFile });
+
+            Assert.True(string.IsNullOrEmpty(_error.ToString()), $"Threw error: {_error.ToString()}");
+            Assert.Equal(0, run);
+
+            app = GetApplication();
+            var absolute = Path.GetFullPath(nswagJsonFile, project.Project.Dir().Root);
+            run = app.Execute(new[] { "add", "file", absolute});
+
+            Assert.True(string.IsNullOrEmpty(_error.ToString()), $"Threw error: {_error.ToString()}");
+            Assert.Equal(0, run);
+
+            var csproj = new FileInfo(project.Project.Path);
+            var projXml = new XmlDocument();
+            projXml.Load(csproj.FullName);
+
+            var openApiRefs = projXml.GetElementsByTagName(Commands.BaseCommand.OpenApiReference);
+            Assert.Single(openApiRefs);
+        }
+
+        [Fact]
         public async Task OpenApi_Add_FromJson()
         {
             var project = CreateBasicProject(withOpenApi: true);

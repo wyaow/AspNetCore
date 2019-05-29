@@ -2,6 +2,7 @@
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
 using System;
+using System.Collections.Generic;
 using System.IO;
 using System.Threading.Tasks;
 using Microsoft.Extensions.CommandLineUtils;
@@ -37,8 +38,7 @@ namespace Microsoft.DotNet.OpenApi.Commands
                 }
                 else
                 {
-                    Error.Write($"{SourceProjectArgName} of '{sourceFile}' was not valid. Valid values are a JSON file or a YAML file");
-                    throw new ArgumentException();
+                    throw new ArgumentException($"{SourceProjectArgName} of '{sourceFile}' was not valid. Valid values are a JSON file or a YAML file");
                 }
             }
 
@@ -47,8 +47,8 @@ namespace Microsoft.DotNet.OpenApi.Commands
 
         private bool IsLocalFile(string file)
         {
-            var fullPath = Path.Join(WorkingDirectory, file);
-            return File.Exists(fullPath) && (file.EndsWith(".json") || file.EndsWith(".yaml"));
+            var fullPath = GetFullPath(file);
+            return File.Exists(fullPath) && (file.EndsWith(".json") || file.EndsWith(".yaml") || file.EndsWith(".yml"));
         }
 
         protected override bool ValidateArguments()

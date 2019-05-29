@@ -1,4 +1,4 @@
-<Project Sdk="Microsoft.NET.Sdk">
+﻿<Project Sdk="Microsoft.NET.Sdk">
   <PropertyGroup>
     <TargetFramework>netcoreapp3.0</TargetFramework>
     <AssemblyName>Microsoft.DotNet.Open.Api.Tools.Tests</AssemblyName>
@@ -38,14 +38,10 @@
   </Target>
 
   <Target Name="PublishDotNetOpenApiOnBuild" BeforeTargets="Build">
-    <MSBuild Projects="..\src\dotnet-openapi.csproj"
-      Targets="Publish"
-      Properties="PublishDir=$(OutputPath)\tool\;Configuration=$(Configuration)" />
+    <MSBuild Projects="..\src\dotnet-openapi.csproj" Targets="Publish" Properties="PublishDir=$(OutputPath)\tool\;Configuration=$(Configuration)" />
   </Target>
 
   <Target Name="PublishDotNetOpenApiOnPublish" BeforeTargets="Publish">
-    <MSBuild Projects="..\src\dotnet-openapi.csproj"
-      Targets="Publish"
-      Properties="PublishDir=$(PublishDir)\tool\;Configuration=$(Configuration)" />
+    <MSBuild Projects="..\src\dotnet-openapi.csproj" Targets="Publish" Properties="PublishDir=$(PublishDir)\tool\;Configuration=$(Configuration)" />
   </Target>
 </Project>
